@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export SYMFONY_DEPRECATIONS_HELPER=${SYMFONY_DEPRECATIONS_HELPER:-disabled}
+php bin/phpunit --exclude IntegrationTests $*
