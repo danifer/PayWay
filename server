@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ ! -f $PWD/.web-server-pid ]
+then
+    php bin/console server:start 0.0.0.0:8000
+else
+    php bin/console server:stop
+fi
