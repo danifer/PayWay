@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ ! -f $PWD/.web-server-pid ]
+if symfony server:status | grep -q 'Listening on';
 then
-    php bin/console server:start 0.0.0.0:8000
+    symfony server:stop
 else
-    php bin/console server:stop
+    symfony server:start -d
 fi
