@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Charge index{% endblock %}
+
+{% block body %}
+    <h1>Charge index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Description</th>
+                <th>RecipientEmail</th>
+                <th>AddressLine1</th>
+                <th>AddressPostalCode</th>
+                <th>Refunded</th>
+                <th>Notes</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for charge in charges %}
+            <tr>
+                <td>{{ charge.id }}</td>
+                <td>{{ charge.amount }}</td>
+                <td>{{ charge.currency }}</td>
+                <td>{{ charge.description }}</td>
+                <td>{{ charge.recipientEmail }}</td>
+                <td>{{ charge.addressLine1 }}</td>
+                <td>{{ charge.addressPostalCode }}</td>
+                <td>{{ charge.refunded ? 'Yes' : 'No' }}</td>
+                <td>{{ charge.notes }}</td>
+                <td>{{ charge.created ? charge.created|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ charge.updated ? charge.updated|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_charge_show', {'id': charge.id}) }}">show</a>
+                    <a href="{{ path('app_charge_edit', {'id': charge.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="12">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_charge_new') }}">Create new</a>
+{% endblock %}
