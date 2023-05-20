@@ -1,0 +1,130 @@
+#!/bin/bash
+
+# function join_by {
+#     local IFS="$1 "; shift; return "$*";
+# }
+
+function join_by {
+    local IFS="$1"; shift; echo "$*";
+}
+
+
+function writeln {
+    echo -e "  $1"
+}
+
+CONFIRMATION=N
+CREATE_DATABASES=true
+CREATE_TEST_DATABASE=""
+DATABASE_NAME=""
+DATABASE_USER=""
+TEST_DATABASE_NAME=""
+TEST_DATABASE_USER=""
+
+if [ ! $DROPDB_COMMAND ]; then
+    DROPDB_COMMAND="dropdb"
+fi
+
+if [ ! $DROPUSER_COMMAND ]; then
+    DROPUSER_COMMAND="dropuser"
+fi
+
+if [ ! $CREATEDB_COMMAND ]; then
+    CREATEDB_COMMAND="createdb"
+fi
+
+if [ ! $CREATEUSER_COMMAND ]; then
+    CREATEUSER_COMMAND="createuser"
+fi
+
+while true; do
+    case "$1" in
+        --no-create)
+            CREATE_DATABASES=""
+            shift
+            ;;
+        -d)
+            shift
+            DATABASE_NAME=$1
+            shift
+            ;;
+        -U)
+            shift
+            DATABASE_USER=$1
+            shift
+            ;;
+        --include-test-database)
+            CREATE_TEST_DATABASE=true
+            TEST_DATABASE_NAME="$DATABASE_NAME"_test
+            TEST_DATABASE_USER="$DATABASE_USER"_test
+            shift
+            ;;
+        *)
+        break
+        ;;
+    esac
+done
+
+if [ ! $DATABASE_NAME ]; then
+    writeln "Database name required (-d dbname)"
+    exit 1
+fi
+
+if [ ! $DATABASE_USER ]; then
+    writeln "Database user required (-U dbuser)"
+    exit 1
+fi
+
+if [ $CREATE_DATABASES ]; then
+    DROP_PROMPT="DROP and RECREATE"
+
+else
+    DROP_PROMPT="DROP" 
+fi
+
+DROP_PROMPT+=" users " 
+DROP_PROMPT+="["$(join_by , $DATABASE_USER $TEST_DATABASE_USER)"]"
+DROP_PROMPT+=" and databases " 
+DROP_PROMPT+="["$(join_by , $DATABASE_NAME $TEST_DATABASE_NAME)"]"
+DROP_PROMPT+="? [N/y] "
+
+read -p "$DROP_PROMPT" CONFIRMATION
+
+if [ "$CONFIRMATION" != "Y" ] && [ "$CONFIRMATION" != "y" ]; then
+    writeln "exiting"
+    exit 1
+fi
+
+# Create Database
+writeln "Dropping database $DATABASE_NAME"
+$DROPDB_COMMAND --if-exists $DATABASE_NAME
+
+writeln "Dropping user $DATABASE_USER"
+$DROPUSER_COMMAND --if-exists -U$USER $DATABASE_USER
+
+if [ $CREATE_DATABASES ]; then
+    writeln "Creating user $DATABASE_USER"
+    $CREATEUSER_COMMAND -d -U$USER -gpg_read_server_files -gpg_write_server_files $DATABASE_USER
+
+    writeln "Creating database $DATABASE_NAME"
+    $CREATEDB_COMMAND -E 'UTF-8' -O $DATABASE_USER -U$DATABASE_USER $DATABASE_NAME
+fi
+
+if [ $CREATE_TEST_DATABASE ]; then
+    # Create Test Database
+    writeln "Dropping database $TEST_DATABASE_NAME"
+    $DROPDB_COMMAND --if-exists $TEST_DATABASE_NAME
+
+    writeln "Dropping user $TEST_DATABASE_USER"
+    $DROPUSER_COMMAND --if-exists -U$USER $TEST_DATABASE_USER
+
+    if [ $CREATE_DATABASES ]; then
+        writeln "Creating user $TEST_DATABASE_USER"
+        $CREATEUSER_COMMAND -d -U$USER -gpg_read_server_files -gpg_write_server_files $TEST_DATABASE_NAME
+
+        writeln "Creating database $TEST_DATABASE_NAME"
+        $CREATEDB_COMMAND -E 'UTF-8' -O $TEST_DATABASE_USER -U$TEST_DATABASE_USER $TEST_DATABASE_NAME
+    fi
+fi
+
+exit 0

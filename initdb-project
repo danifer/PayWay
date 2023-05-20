@@ -1,0 +1,3 @@
+#!/bin/bash
+
+bin/initdb -d payway -U payway --include-test-database
