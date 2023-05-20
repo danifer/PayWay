@@ -29,6 +29,9 @@ class Charge
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $addressLine1 = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $addressLine2 = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $addressPostalCode = null;
 
@@ -105,6 +108,18 @@ class Charge
     public function setAddressLine1(?string $addressLine1): self
     {
         $this->addressLine1 = $addressLine1;
+
+        return $this;
+    }
+
+    public function getAddressLine2(): ?string
+    {
+        return $this->addressLine2;
+    }
+
+    public function setAddressLine2(?string $addressLine2): self
+    {
+        $this->addressLine2 = $addressLine2;
 
         return $this;
     }
